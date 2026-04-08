@@ -1,0 +1,167 @@
+<div class="page-header">
+  <div>
+    <h1>Movimientos</h1>
+    <p>Consulta la trazabilidad del inventario</p>
+  </div>
+</div>
+
+<div class="content-grid">
+  <mat-card class="filter-card">
+    <h2>Filtros</h2>
+
+    <form [formGroup]="form">
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Producto</mat-label>
+        <mat-select formControlName="producto_id">
+          <mat-option [value]="null">Todos</mat-option>
+          <mat-option *ngFor="let producto of productos" [value]="producto.id">
+            {{ producto.codigo }} - {{ producto.nombre }}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>ID de lote</mat-label>
+        <input matInput type="number" formControlName="lote_id" />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Tipo de movimiento</mat-label>
+        <mat-select formControlName="tipo_movimiento">
+          <mat-option value="">Todos</mat-option>
+          <mat-option *ngFor="let tipo of tiposMovimiento" [value]="tipo">
+            {{ tipo }}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Fecha desde</mat-label>
+        <input matInput type="date" formControlName="fecha_desde" />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Fecha hasta</mat-label>
+        <input matInput type="date" formControlName="fecha_hasta" />
+      </mat-form-field>
+
+      <div class="form-actions">
+        <button
+          mat-raised-button
+          color="primary"
+          type="button"
+          (click)="applyFilters()"
+          [disabled]="loading || loadingProductos"
+        >
+          Filtrar
+        </button>
+
+        <button mat-stroked-button type="button" (click)="clearFilters()">
+          Limpiar
+        </button>
+      </div>
+    </form>
+  </mat-card>
+
+  <mat-card class="table-card">
+    <div class="table-header">
+      <h2>Listado de movimientos</h2>
+      <span>Total: {{ pagination.total }}</span>
+    </div>
+
+    <div *ngIf="loading" class="state-message">
+      Cargando movimientos...
+    </div>
+
+    <div *ngIf="!loading && errorMessage" class="state-message error">
+      {{ errorMessage }}
+    </div>
+
+    <div class="table-wrapper" *ngIf="!loading">
+      <table mat-table [dataSource]="movimientos" class="mat-elevation-z1 custom-table">
+        <ng-container matColumnDef="id">
+          <th mat-header-cell *matHeaderCellDef>ID</th>
+          <td mat-cell *matCellDef="let movimiento">{{ movimiento.id }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="fecha">
+          <th mat-header-cell *matHeaderCellDef>Fecha</th>
+          <td mat-cell *matCellDef="let movimiento">
+            {{ movimiento.fecha_movimiento | date:'short' }}
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="tipo">
+          <th mat-header-cell *matHeaderCellDef>Tipo</th>
+          <td mat-cell *matCellDef="let movimiento">
+            {{ movimiento.tipo_movimiento }}
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="producto">
+          <th mat-header-cell *matHeaderCellDef>Producto</th>
+          <td mat-cell *matCellDef="let movimiento">
+            {{ movimiento.producto_nombre }}
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="lote">
+          <th mat-header-cell *matHeaderCellDef>Lote</th>
+          <td mat-cell *matCellDef="let movimiento">
+            {{ movimiento.numero_lote || '-' }}
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="cantidad">
+          <th mat-header-cell *matHeaderCellDef>Cantidad</th>
+          <td mat-cell *matCellDef="let movimiento">
+            {{ movimiento.cantidad }}
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="usuario">
+          <th mat-header-cell *matHeaderCellDef>Usuario</th>
+          <td mat-cell *matCellDef="let movimiento">
+            {{ movimiento.usuario }}
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="referencia">
+          <th mat-header-cell *matHeaderCellDef>Referencia</th>
+          <td mat-cell *matCellDef="let movimiento">
+            {{ movimiento.referencia_tipo || '-' }}
+            <span *ngIf="movimiento.referencia_id">
+              #{{ movimiento.referencia_id }}
+            </span>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="observacion">
+          <th mat-header-cell *matHeaderCellDef>Observación</th>
+          <td mat-cell *matCellDef="let movimiento">
+            {{ movimiento.observacion || '-' }}
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+        <tr class="mat-row" *matNoDataRow>
+          <td class="mat-cell empty-cell" colspan="9">
+            No hay movimientos registrados.
+          </td>
+        </tr>
+      </table>
+    </div>
+
+    <mat-paginator
+      *ngIf="!loading && pagination.total > 0"
+      [length]="pagination.total"
+      [pageSize]="pagination.limit"
+      [pageIndex]="pagination.page - 1"
+      [pageSizeOptions]="[5, 10, 20, 50]"
+      (page)="onPageChange($event)"
+      showFirstLastButtons
+    >
+    </mat-paginator>
+  </mat-card>
+</div>

@@ -1,0 +1,242 @@
+<div class="page-header">
+  <div>
+    <h1>Productos</h1>
+    <p>Gestiona los productos del sistema</p>
+  </div>
+</div>
+
+<div class="content-grid">
+  <mat-card class="form-card">
+    <h2>{{ editingId ? 'Editar producto' : 'Nuevo producto' }}</h2>
+
+    <form [formGroup]="form" (ngSubmit)="submit()">
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Categoría</mat-label>
+        <mat-select formControlName="categoria_id">
+          <mat-option *ngFor="let categoria of categorias" [value]="categoria.id">
+            {{ categoria.nombre }}
+          </mat-option>
+        </mat-select>
+        <mat-error *ngIf="categoriaControl?.hasError('required')">
+          Debes seleccionar una categoría.
+        </mat-error>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Código</mat-label>
+        <input matInput formControlName="codigo" />
+        <mat-error *ngIf="codigoControl?.hasError('required')">
+          El código es obligatorio.
+        </mat-error>
+        <mat-error *ngIf="codigoControl?.hasError('minlength')">
+          Debe tener al menos 2 caracteres.
+        </mat-error>
+        <mat-error *ngIf="codigoControl?.hasError('maxlength')">
+          No debe superar 50 caracteres.
+        </mat-error>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Nombre</mat-label>
+        <input matInput formControlName="nombre" />
+        <mat-error *ngIf="nombreControl?.hasError('required')">
+          El nombre es obligatorio.
+        </mat-error>
+        <mat-error *ngIf="nombreControl?.hasError('minlength')">
+          Debe tener al menos 2 caracteres.
+        </mat-error>
+        <mat-error *ngIf="nombreControl?.hasError('maxlength')">
+          No debe superar 200 caracteres.
+        </mat-error>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Descripción</mat-label>
+        <textarea matInput formControlName="descripcion" rows="3"></textarea>
+        <mat-error *ngIf="descripcionControl?.hasError('maxlength')">
+          La descripción no debe superar 1000 caracteres.
+        </mat-error>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Unidad de medida</mat-label>
+        <input matInput formControlName="unidad_medida" />
+        <mat-error *ngIf="unidadMedidaControl?.hasError('required')">
+          La unidad de medida es obligatoria.
+        </mat-error>
+        <mat-error *ngIf="unidadMedidaControl?.hasError('maxlength')">
+          No debe superar 30 caracteres.
+        </mat-error>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Stock mínimo</mat-label>
+        <input matInput type="number" formControlName="stock_minimo" />
+        <mat-error *ngIf="stockMinimoControl?.hasError('required')">
+          El stock mínimo es obligatorio.
+        </mat-error>
+        <mat-error *ngIf="stockMinimoControl?.hasError('min')">
+          El stock mínimo no puede ser negativo.
+        </mat-error>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>¿Requiere lote?</mat-label>
+        <mat-select formControlName="requiere_lote">
+          <mat-option [value]="true">Sí</mat-option>
+          <mat-option [value]="false">No</mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>¿Requiere vencimiento?</mat-label>
+        <mat-select formControlName="requiere_vencimiento">
+          <mat-option [value]="true">Sí</mat-option>
+          <mat-option [value]="false">No</mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <div class="form-actions">
+        <button
+          mat-raised-button
+          color="primary"
+          type="submit"
+          [disabled]="saving || loadingCategorias"
+        >
+          {{ saving ? 'Guardando...' : (editingId ? 'Actualizar' : 'Crear') }}
+        </button>
+
+        <button mat-stroked-button type="button" (click)="resetForm()">
+          Limpiar
+        </button>
+      </div>
+    </form>
+  </mat-card>
+
+  <mat-card class="table-card">
+    <div class="table-header">
+      <h2>Listado de productos</h2>
+      <span>Total: {{ pagination.total }}</span>
+    </div>
+
+    <div *ngIf="loading" class="state-message">
+      Cargando productos...
+    </div>
+
+    <div *ngIf="!loading && errorMessage" class="state-message error">
+      {{ errorMessage }}
+    </div>
+
+    <div *ngIf="!loading && successMessage" class="state-message success">
+      {{ successMessage }}
+    </div>
+
+    <div class="table-wrapper" *ngIf="!loading">
+      <table mat-table [dataSource]="productos" class="mat-elevation-z1 custom-table">
+        <ng-container matColumnDef="id">
+          <th mat-header-cell *matHeaderCellDef>ID</th>
+          <td mat-cell *matCellDef="let producto">{{ producto.id }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="codigo">
+          <th mat-header-cell *matHeaderCellDef>Código</th>
+          <td mat-cell *matCellDef="let producto">{{ producto.codigo }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="nombre">
+          <th mat-header-cell *matHeaderCellDef>Nombre</th>
+          <td mat-cell *matCellDef="let producto">{{ producto.nombre }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="categoria">
+          <th mat-header-cell *matHeaderCellDef>Categoría</th>
+          <td mat-cell *matCellDef="let producto">{{ producto.categoria }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="unidad">
+          <th mat-header-cell *matHeaderCellDef>Unidad</th>
+          <td mat-cell *matCellDef="let producto">{{ producto.unidad_medida }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="stock_minimo">
+          <th mat-header-cell *matHeaderCellDef>Stock mínimo</th>
+          <td mat-cell *matCellDef="let producto">{{ producto.stock_minimo }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="lote">
+          <th mat-header-cell *matHeaderCellDef>Lote</th>
+          <td mat-cell *matCellDef="let producto">
+            {{ producto.requiere_lote ? 'Sí' : 'No' }}
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="vencimiento">
+          <th mat-header-cell *matHeaderCellDef>Venc.</th>
+          <td mat-cell *matCellDef="let producto">
+            {{ producto.requiere_vencimiento ? 'Sí' : 'No' }}
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="estado">
+          <th mat-header-cell *matHeaderCellDef>Estado</th>
+          <td mat-cell *matCellDef="let producto">
+            <span
+              class="status-badge"
+              [class.active]="producto.estado"
+              [class.inactive]="!producto.estado"
+            >
+              {{ producto.estado ? 'Activo' : 'Inactivo' }}
+            </span>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="acciones">
+          <th mat-header-cell *matHeaderCellDef>Acciones</th>
+          <td mat-cell *matCellDef="let producto">
+            <div class="action-buttons">
+              <button
+                mat-icon-button
+                color="primary"
+                type="button"
+                (click)="editProducto(producto)"
+                aria-label="Editar"
+              >
+                <mat-icon>edit</mat-icon>
+              </button>
+
+              <button
+                mat-icon-button
+                color="warn"
+                type="button"
+                (click)="removeProducto(producto)"
+                [disabled]="!producto.estado"
+                aria-label="Desactivar"
+              >
+                <mat-icon>delete</mat-icon>
+              </button>
+            </div>
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+        <tr class="mat-row" *matNoDataRow>
+          <td class="mat-cell empty-cell" colspan="10">
+            No hay productos registrados.
+          </td>
+        </tr>
+      </table>
+    </div>
+
+    <mat-paginator
+      *ngIf="!loading && pagination.total > 0"
+      [length]="pagination.total"
+      [pageSize]="pagination.limit"
+      [pageIndex]="pagination.page - 1"
+      [pageSizeOptions]="[5, 10, 20, 50]"
+      (page)="onPageChange($event)"
+      showFirstLastButtons
+    >
+    </mat-paginator>
+  </mat-card>
+</div>

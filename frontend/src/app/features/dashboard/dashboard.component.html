@@ -1,0 +1,247 @@
+<div class="page-header">
+  <div>
+    <h1>Dashboard</h1>
+    <p>Resumen general del sistema de inventario</p>
+  </div>
+
+  <button mat-stroked-button type="button" (click)="loadDashboard()">
+    <mat-icon>refresh</mat-icon>
+    Recargar
+  </button>
+</div>
+
+<div *ngIf="loading" class="state-message">
+  Cargando información...
+</div>
+
+<div *ngIf="!loading && errorMessage" class="state-message error">
+  {{ errorMessage }}
+</div>
+
+<div *ngIf="!loading && dashboard">
+  <div class="cards">
+    <mat-card class="summary-card">
+      <div class="card-header">
+        <mat-icon>inventory_2</mat-icon>
+        <span>Productos activos</span>
+      </div>
+      <strong>{{ dashboard.resumen.total_productos_activos }}</strong>
+    </mat-card>
+
+    <mat-card class="summary-card warning">
+      <div class="card-header">
+        <mat-icon>warning</mat-icon>
+        <span>Stock bajo</span>
+      </div>
+      <strong>{{ dashboard.resumen.productos_stock_bajo }}</strong>
+    </mat-card>
+
+    <mat-card class="summary-card warning">
+      <div class="card-header">
+        <mat-icon>schedule</mat-icon>
+        <span>Por vencer (30 días)</span>
+      </div>
+      <strong>{{ dashboard.resumen.lotes_por_vencer_30 }}</strong>
+    </mat-card>
+
+    <mat-card class="summary-card danger">
+      <div class="card-header">
+        <mat-icon>error</mat-icon>
+        <span>Lotes vencidos</span>
+      </div>
+      <strong>{{ dashboard.resumen.lotes_vencidos_con_stock }}</strong>
+    </mat-card>
+  </div>
+
+  <div class="section-grid">
+    <mat-card class="panel">
+      <div class="panel-header">
+        <h2>Productos con stock bajo</h2>
+      </div>
+
+      <div
+        class="empty-state"
+        *ngIf="dashboard.productos_stock_bajo_detalle.length === 0"
+      >
+        No hay productos con stock bajo.
+      </div>
+
+      <div
+        class="table-wrapper"
+        *ngIf="dashboard.productos_stock_bajo_detalle.length > 0"
+      >
+        <table
+          mat-table
+          [dataSource]="dashboard.productos_stock_bajo_detalle"
+          class="mat-elevation-z1 custom-table"
+        >
+          <ng-container matColumnDef="codigo">
+            <th mat-header-cell *matHeaderCellDef>Código</th>
+            <td mat-cell *matCellDef="let item">{{ item.codigo }}</td>
+          </ng-container>
+
+          <ng-container matColumnDef="nombre">
+            <th mat-header-cell *matHeaderCellDef>Producto</th>
+            <td mat-cell *matCellDef="let item">{{ item.nombre }}</td>
+          </ng-container>
+
+          <ng-container matColumnDef="stock_actual">
+            <th mat-header-cell *matHeaderCellDef>Stock actual</th>
+            <td mat-cell *matCellDef="let item">{{ item.stock_actual }}</td>
+          </ng-container>
+
+          <ng-container matColumnDef="stock_minimo">
+            <th mat-header-cell *matHeaderCellDef>Stock mínimo</th>
+            <td mat-cell *matCellDef="let item">{{ item.stock_minimo }}</td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="stockBajoColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: stockBajoColumns"></tr>
+        </table>
+      </div>
+    </mat-card>
+
+    <mat-card class="panel">
+      <div class="panel-header">
+        <h2>Lotes por vencer</h2>
+      </div>
+
+      <div
+        class="empty-state"
+        *ngIf="dashboard.lotes_por_vencer_detalle.length === 0"
+      >
+        No hay lotes próximos a vencer.
+      </div>
+
+      <div
+        class="table-wrapper"
+        *ngIf="dashboard.lotes_por_vencer_detalle.length > 0"
+      >
+        <table
+          mat-table
+          [dataSource]="dashboard.lotes_por_vencer_detalle"
+          class="mat-elevation-z1 custom-table"
+        >
+          <ng-container matColumnDef="producto_nombre">
+            <th mat-header-cell *matHeaderCellDef>Producto</th>
+            <td mat-cell *matCellDef="let item">{{ item.producto_nombre }}</td>
+          </ng-container>
+
+          <ng-container matColumnDef="numero_lote">
+            <th mat-header-cell *matHeaderCellDef>Lote</th>
+            <td mat-cell *matCellDef="let item">{{ item.numero_lote }}</td>
+          </ng-container>
+
+          <ng-container matColumnDef="fecha_vencimiento">
+            <th mat-header-cell *matHeaderCellDef>Vence</th>
+            <td mat-cell *matCellDef="let item">{{ item.fecha_vencimiento }}</td>
+          </ng-container>
+
+          <ng-container matColumnDef="cantidad_actual">
+            <th mat-header-cell *matHeaderCellDef>Cantidad</th>
+            <td mat-cell *matCellDef="let item">{{ item.cantidad_actual }}</td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="lotesPorVencerColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: lotesPorVencerColumns"></tr>
+        </table>
+      </div>
+    </mat-card>
+  </div>
+
+  <div class="section-grid">
+    <mat-card class="panel">
+      <div class="panel-header">
+        <h2>Últimas compras</h2>
+      </div>
+
+      <div class="empty-state" *ngIf="dashboard.ultimas_compras.length === 0">
+        No hay compras registradas.
+      </div>
+
+      <div class="table-wrapper" *ngIf="dashboard.ultimas_compras.length > 0">
+        <table
+          mat-table
+          [dataSource]="dashboard.ultimas_compras"
+          class="mat-elevation-z1 custom-table"
+        >
+          <ng-container matColumnDef="fecha_compra">
+            <th mat-header-cell *matHeaderCellDef>Fecha</th>
+            <td mat-cell *matCellDef="let item">{{ item.fecha_compra }}</td>
+          </ng-container>
+
+          <ng-container matColumnDef="comprobante">
+            <th mat-header-cell *matHeaderCellDef>Comprobante</th>
+            <td mat-cell *matCellDef="let item">
+              {{ item.tipo_comprobante }} {{ item.numero_comprobante }}
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="proveedor">
+            <th mat-header-cell *matHeaderCellDef>Proveedor</th>
+            <td mat-cell *matCellDef="let item">{{ item.proveedor }}</td>
+          </ng-container>
+
+          <ng-container matColumnDef="total">
+            <th mat-header-cell *matHeaderCellDef>Total</th>
+            <td mat-cell *matCellDef="let item">
+              {{ item.total | number:'1.2-2' }}
+            </td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="comprasColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: comprasColumns"></tr>
+        </table>
+      </div>
+    </mat-card>
+
+    <mat-card class="panel">
+      <div class="panel-header">
+        <h2>Últimos movimientos</h2>
+      </div>
+
+      <div
+        class="empty-state"
+        *ngIf="dashboard.ultimos_movimientos.length === 0"
+      >
+        No hay movimientos registrados.
+      </div>
+
+      <div
+        class="table-wrapper"
+        *ngIf="dashboard.ultimos_movimientos.length > 0"
+      >
+        <table
+          mat-table
+          [dataSource]="dashboard.ultimos_movimientos"
+          class="mat-elevation-z1 custom-table"
+        >
+          <ng-container matColumnDef="fecha_movimiento">
+            <th mat-header-cell *matHeaderCellDef>Fecha</th>
+            <td mat-cell *matCellDef="let item">
+              {{ item.fecha_movimiento | date:'short' }}
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="tipo_movimiento">
+            <th mat-header-cell *matHeaderCellDef>Tipo</th>
+            <td mat-cell *matCellDef="let item">{{ item.tipo_movimiento }}</td>
+          </ng-container>
+
+          <ng-container matColumnDef="producto_nombre">
+            <th mat-header-cell *matHeaderCellDef>Producto</th>
+            <td mat-cell *matCellDef="let item">{{ item.producto_nombre }}</td>
+          </ng-container>
+
+          <ng-container matColumnDef="cantidad">
+            <th mat-header-cell *matHeaderCellDef>Cantidad</th>
+            <td mat-cell *matCellDef="let item">{{ item.cantidad }}</td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="movimientosColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: movimientosColumns"></tr>
+        </table>
+      </div>
+    </mat-card>
+  </div>
+</div>
