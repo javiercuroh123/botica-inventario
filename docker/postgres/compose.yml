@@ -1,0 +1,17 @@
+services:
+  postgres:
+    image: postgres:17
+    container_name: botica-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: botica_user
+      POSTGRES_PASSWORD: botica_pass
+      POSTGRES_DB: botica_db
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_botica_data:/var/lib/postgresql/data
+      - ./init:/docker-entrypoint-initdb.d
+
+volumes:
+  postgres_botica_data:

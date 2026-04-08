@@ -1,0 +1,18 @@
+# Dependencias
+node_modules/
+
+# Archivos de variables de entorno (¡Muy importante para que no se filtren tus contraseñas de la base de datos!)
+.env
+
+# Carpetas de compilación de TypeScript
+dist/
+build/
+out/
+
+# Logs de errores
+logs
+*.log
+npm-debug.log*
+
+# Archivos del sistema operativo
+.DS_Store
