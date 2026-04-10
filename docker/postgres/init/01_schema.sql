@@ -165,3 +165,29 @@ INSERT INTO roles (nombre, descripcion) VALUES
 ('ADMIN', 'Administrador del sistema'),
 ('ALMACEN', 'Encargado de almacén'),
 ('CAJERO', 'Usuario de consulta');
+
+-- Usuario administrador semilla
+-- correo: admin@botica.com
+-- password: Admin123456
+INSERT INTO usuarios (
+    rol_id,
+    nombres,
+    apellidos,
+    correo,
+    password_hash,
+    estado
+)
+SELECT
+    r.id,
+    'Administrador',
+    'Principal',
+    'admin@botica.com',
+    '$2b$10$MeoQrNbThO1nYdYF72yNE.PCQk8CKc6ehd0dh7yavCG2bjUnshOqC',
+    TRUE
+FROM roles r
+WHERE r.nombre = 'ADMIN'
+  AND NOT EXISTS (
+      SELECT 1
+      FROM usuarios u
+      WHERE u.correo = 'admin@botica.com'
+  );
